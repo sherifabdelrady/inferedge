@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  inferedge:
+    build: .
+    container_name: inferedge-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/models/model.onnx
+      - DEVICE=cpu           # change to 'cuda' for GPU
+      - MAX_BATCH_SIZE=8
+      - CONFIDENCE=0.25
+    volumes:
+      - ./models:/models:ro  # mount your .onnx model here
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: expose Prometheus metrics via Nginx
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - inferedge
